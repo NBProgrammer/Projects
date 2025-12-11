@@ -51,7 +51,7 @@ Before running this application, ensure you have the following installed:
 
 ## Installation
 
-1. Clone the repository:
+1. Navigate to the project directory:
    ```bash
    cd youtube-flac-downloader
    ```

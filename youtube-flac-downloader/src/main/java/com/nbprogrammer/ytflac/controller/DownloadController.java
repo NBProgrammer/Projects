@@ -70,7 +70,7 @@ public class DownloadController {
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + flacFile.getName() + "\"");
             headers.add(HttpHeaders.CONTENT_TYPE, "audio/flac");
             
-            // Return the file and schedule deletion after response is sent
+            // Return the file (automatic cleanup handled by FileCleanupAdvice)
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentLength(flacFile.length())

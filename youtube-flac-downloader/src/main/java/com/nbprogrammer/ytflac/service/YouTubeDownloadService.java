@@ -140,11 +140,24 @@ public class YouTubeDownloadService {
             throw new IOException("YouTube URL cannot be empty");
         }
 
-        // Basic YouTube URL validation
-        if (!url.contains("youtube.com/watch") && 
-            !url.contains("youtu.be/") && 
-            !url.contains("youtube.com/shorts/")) {
-            throw new IOException("Invalid YouTube URL");
+        // Improved YouTube URL validation with regex
+        String urlPattern = "^(https?://)?(www\\.)?(youtube\\.com/(watch\\?v=|shorts/)|youtu\\.be/)[a-zA-Z0-9_-]+.*$";
+        if (!url.matches(urlPattern)) {
+            throw new IOException("Invalid YouTube URL format");
+        }
+        
+        // Additional security check - ensure it's a YouTube domain
+        try {
+            java.net.URL urlObj = new java.net.URL(url);
+            String host = urlObj.getHost().toLowerCase();
+            if (!host.equals("youtube.com") && 
+                !host.equals("www.youtube.com") && 
+                !host.equals("youtu.be") &&
+                !host.equals("m.youtube.com")) {
+                throw new IOException("URL must be from YouTube domain");
+            }
+        } catch (java.net.MalformedURLException e) {
+            throw new IOException("Malformed URL: " + e.getMessage());
         }
     }
 
