@@ -13,11 +13,15 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @ControllerAdvice
 public class FileCleanupAdvice implements ResponseBodyAdvice<Resource> {
 
     private static final Logger logger = LoggerFactory.getLogger(FileCleanupAdvice.class);
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
@@ -42,20 +46,13 @@ public class FileCleanupAdvice implements ResponseBodyAdvice<Resource> {
     }
 
     private void scheduleFileDeletion(File file) {
-        // Delete file in a separate thread after a delay
-        new Thread(() -> {
-            try {
-                // Wait a bit to ensure the file has been fully sent
-                Thread.sleep(5000);
-                if (file.exists() && file.delete()) {
-                    logger.info("Cleaned up temporary file: {}", file.getAbsolutePath());
-                } else {
-                    logger.warn("Failed to delete temporary file: {}", file.getAbsolutePath());
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                logger.error("File cleanup interrupted", e);
+        // Use scheduled executor service instead of creating new threads
+        scheduler.schedule(() -> {
+            if (file.exists() && file.delete()) {
+                logger.info("Cleaned up temporary file: {}", file.getAbsolutePath());
+            } else {
+                logger.warn("Failed to delete temporary file: {}", file.getAbsolutePath());
             }
-        }).start();
+        }, 5, TimeUnit.SECONDS);
     }
 }
