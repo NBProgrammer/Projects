@@ -1,0 +1,19 @@
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+
+# Downloads
+downloads/
+*.flac
+*.mp3
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+desktop.ini

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube FLAC Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .info-box.show {
+            display: block;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            background: #fff9e6;
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #ff8c00;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 YouTube FLAC Downloader</h1>
+        <p class="subtitle">Download high-quality audio from YouTube in FLAC format</p>
+
+        <div class="input-group">
+            <label for="youtubeUrl">YouTube URL:</label>
+            <input 
+                type="text" 
+                id="youtubeUrl" 
+                placeholder="https://www.youtube.com/watch?v=..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div id="infoBox" class="info-box">
+            <h3>Video Information</h3>
+            <p id="videoTitle"></p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-secondary" onclick="getVideoInfo()">Get Info</button>
+            <button class="btn-primary" onclick="downloadAudio()">Download FLAC</button>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to use:</h3>
+            <ol>
+                <li>Copy a YouTube video URL</li>
+                <li>Paste it into the input field above</li>
+                <li>Click "Get Info" to preview the video title (optional)</li>
+                <li>Click "Download FLAC" to download the audio in FLAC format</li>
+                <li>Wait for the download to complete</li>
+            </ol>
+        </div>
+
+        <div class="footer">
+            <p>Built with Spring Boot & yt-dlp | For personal use only</p>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message show ' + type;
+            setTimeout(() => {
+                messageEl.className = 'message';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            const loadingEl = document.getElementById('loading');
+            loadingEl.className = show ? 'loading show' : 'loading';
+        }
+
+        function getYouTubeUrl() {
+            const url = document.getElementById('youtubeUrl').value.trim();
+            if (!url) {
+                showMessage('Please enter a YouTube URL', 'error');
+                return null;
+            }
+            return url;
+        }
+
+        async function getVideoInfo() {
+            const url = getYouTubeUrl();
+            if (!url) return;
+
+            showLoading(true);
+            document.getElementById('infoBox').classList.remove('show');
+
+            try {
+                const response = await fetch(`/api/video-info?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('videoTitle').textContent = data.title;
+                    document.getElementById('infoBox').classList.add('show');
+                    showMessage('Video information retrieved successfully', 'success');
+                } else {
+                    showMessage(data.message || 'Failed to get video info', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function downloadAudio() {
+            const url = getYouTubeUrl();
+            if (!url) return;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (response.ok) {
+                    // Get the filename from the Content-Disposition header
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'audio.flac';
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                        if (filenameMatch) {
+                            filename = filenameMatch[1];
+                        }
+                    }
+
+                    // Download the file
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(downloadUrl);
+                    document.body.removeChild(a);
+
+                    showMessage('Download started successfully!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessage(errorData.message || 'Download failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Allow Enter key to trigger download
+        document.getElementById('youtubeUrl').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                downloadAudio();
+            }
+        });
+    </script>
+</body>
+</html>
